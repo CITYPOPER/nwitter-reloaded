@@ -33,7 +33,7 @@ const TextArea = styled.textarea`
 
 const AttachFileButton = styled.label`
   padding: 10px 0px;
-  color: #1d9b0;
+  color: #1d9bf0;
   text-align: center;
   border-radius: 20px;
   border: 1px solid #1d9bf0;
@@ -69,14 +69,21 @@ export default function PostTweetForm() {
   };
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
+    // 파일이 변경될 때마다 파일의 배열을 받게됨 (복수파일 받기도 가능하기 때문에)
     if (files && files.length === 1) {
+      // 유저가 한 개의 파일을 받게하기
+      const FILE_MAX_SIZE = 1 * 1024 * 1024; // 1MB
+      if (files[0].size > FILE_MAX_SIZE) {
+        alert("사진 업로드는 1MB 이하의 사진 업로드만 가능합니다.");
+        return;
+      }
       setFile(files[0]);
     }
   };
-  const onSubmit = async (e:React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const user = auth.currentUser
-    if(!user || isLoading || tweet === "" || tweet.length > 180) return;
+    if (!user || isLoading || tweet === "" || tweet.length > 180) return;
     try {
       setLoading(true);
       const doc = await addDoc(collection(db, "tweets"), {
@@ -85,13 +92,13 @@ export default function PostTweetForm() {
         username: user.displayName || "Anonymous",
         userId: user.uid,
       });
-      if(file) {
-       const locationRef =  ref(storage, `tweets/${user.uid}-${user.displayName}/${doc.id}`);
-       const result = await uploadBytes(locationRef, file);
-       const url = await getDownloadURL(result.ref);
-       await updateDoc(doc, {
-        photo: url,
-       });
+      if (file) {
+        const locationRef = ref(storage, `tweets/${user.uid}/${doc.id}`);
+        const result = await uploadBytes(locationRef, file);
+        const url = await getDownloadURL(result.ref);
+        await updateDoc(doc, {
+          photo: url,
+        });
       }
       setTweet("");
       setFile(null);
@@ -100,10 +107,10 @@ export default function PostTweetForm() {
     } finally {
       setLoading(false);
     }
-  } 
+  }
   return (
     <Form onSubmit={onSubmit}>
-      <TextArea required rows={5} maxLength={180} onChange={onChange} value={tweet} placeholder="What is happening?!"/>
+      <TextArea required rows={5} maxLength={180} onChange={onChange} value={tweet} placeholder="What is happening?!" />
       <AttachFileButton htmlFor="file">
         {file ? "Photo added ✅" : "Add photo"}
       </AttachFileButton>
@@ -112,3 +119,6 @@ export default function PostTweetForm() {
     </Form>
   );
 }
+
+// input은 스타일하기 어려워서 인풋은 숨기고 label을 꾸미는 방식을 사용
+// htmlFor에 id를 넣으면 저 버튼을 누르는 것과 같이 동작
