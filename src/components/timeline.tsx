@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { db } from "../firebase";
-import { collection, getDocs, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import Tweet from "./tweet";
 import { Unsubscribe } from "firebase/auth";
 
@@ -56,14 +56,13 @@ export default function Timeline() {
           };
         });
         setTweet(tweets);
-      })
-      setTweet(tweets);
+      });
     };
     fetchTweets();
     return () => {
       unsubscribe && unsubscribe();
-    }
-  }, [])
+    };
+  }, []);
   return (
     <Wrapper>
       {tweets.map((tweet) => (
